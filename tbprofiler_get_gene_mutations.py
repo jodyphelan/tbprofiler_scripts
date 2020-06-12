@@ -26,12 +26,14 @@ def main(args):
         samples = [x.replace(args.suffix,"") for x in os.listdir(args.dir) if x[-len(args.suffix):]==args.suffix]
 
     blacklist = set([l.strip() for l in open(args.blacklist).readlines()]) if args.blacklist else []
+    gene_set = set(args.gene.split(","))
+
     sys.stdout.write("sample,%s\n" % args.gene)
     for s in tqdm(samples):
         data = json.load(open(pp.filecheck("%s/%s%s" % (args.dir,s,args.suffix))))
         mutations = []
         for var in (data["dr_variants"] + data["other_variants"]):
-            if var["gene"]==args.gene or var["locus_tag"]==args.gene:
+            if var["gene"] in gene_set or var["locus_tag"] in gene_set:
                 if not args.synonymous and var["type"]=="synonymous":
                     continue
                 if var["change"] in blacklist:
