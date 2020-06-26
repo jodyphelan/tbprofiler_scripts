@@ -2,7 +2,7 @@
 
 # Load useful libraries
 import json
-from collections import defaultdict
+from collections import defaultdict,Counter
 import argparse
 import os
 from tqdm import tqdm
@@ -21,22 +21,50 @@ def get_conf_dict(library_prefix):
     return conf
 
 def main(args):
-    # Get a dictionary with the database file: {"ref": "/path/to/fasta" ... etc. }
+    mapping = {
+        "missense":"SNP",
+        "non_coding":"SNP",
+        "non_coding": "SNP",
+        "stop_gained": "SNP",
+        "start_lost": "SNP",
+        "frameshift":"indel",
+        "inframe_deletion":"indel",
+        "inframe_insertion":"indel",
+        "large_deletion":"large_deletion"
+    }
     conf = get_conf_dict(sys.base_prefix + "/share/tbprofiler/%s" % args.db)
-
-    # Get a dictionary mapping the locus_tags to drugs: {"Rv1484": ["isoniazid","ethionamide"], ... etc. }
     locus_tag2drugs = tbprofiler.get_lt2drugs(conf["bed"])
 
-    # If a list of samples is supplied through the args object, store it in a list else get the list from looking in the results direcotry
     if args.samples:
         samples = [x.rstrip() for x in open(args.samples).readlines()]
     else:
         samples = [x.replace(args.suffix,"") for x in os.listdir(args.dir) if x[-len(args.suffix):]==args.suffix]
 
-    # Loop through the sample result files
+    resistance = defaultdict(lambda:defaultdict(list))
     for s in tqdm(samples):
-        # Data has the same structure as the .result.json files
         data = json.load(open(pp.filecheck("%s/%s%s" % (args.dir,s,args.suffix))))
+        for var in data["dr_variants"]:
+            resistance[var["drug"]][s].append(mapping.get(var["type"],"complex"))
+
+    for drug in resistance:
+        lines = []
+        lines.append("DATASET_PIECHART")
+        lines.append("SEPARATOR COMMA")
+        lines.append("DATASET_LABEL,%s" % drug)
+        lines.append("COLOR,#ff0000")
+        lines.append("FIELD_COLORS,#ff0000,#00ff00,#0000ff,#ffffff")
+        lines.append("FIELD_LABELS,snp,indel,large_deletion,no_variant")
+        lines.append("MARGIN,5")
+        # lines.append("MAXIMUM_SIZE,30")
+        lines.append("BORDER_WIDTH,1")
+        lines.append("BORDER_COLOR,#000000")
+        lines.append("DATA")
+        for s in samples:
+            count = Counter(resistance[drug][s])
+            lines.append("%s,-1,7,%s,%s" % (s, ",".join([str(count[d]) for d in ["SNP","indel","large_deletion"]]),"0" if sum(count.values())>0 else "1"))
+        with open("%s.itol.conf.txt" % drug,"w") as O:
+            O.write("\n".join(lines))
+
 
 
 
