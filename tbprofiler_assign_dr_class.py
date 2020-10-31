@@ -28,9 +28,13 @@ def main(args):
 
     for s in tqdm(samples):
         data = json.load(open(pp.filecheck("%s/%s%s" % (args.dir,s,args.suffix))))
-        resistant_drugs = set([d["drug"] for d in data["dr_variants"]])
+        resistant_drugs = set()
+        for var in data["dr_variants"]:
+            for d in var["drugs"]:
+                resistant_drugs.add(d["drug"])
 
-        resistant_drugs = set([d["drug"] for d in data["dr_variants"]])
+
+        
         rif = "rifampicin" in resistant_drugs
         inh = "isoniazid" in resistant_drugs
         flq = len(FLQ_set.intersection(resistant_drugs)) > 0

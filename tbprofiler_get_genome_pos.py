@@ -29,7 +29,11 @@ def main(args):
     for s in tqdm(samples):
         data = json.load(open(pp.filecheck("%s/%s%s" % (args.dir,s,args.suffix))))
 
-        for var in data["dr_variants"] + data["other_variants"]:
+        if args.dr_only:
+            pool = data["dr_variants"]
+        else:
+            pool = data["dr_variants"] + data["other_variants"]
+        for var in pool:
             aa2genome_pos[(var["gene"],var["change"])].append(var["genome_pos"])
 
     with open(args.out,"w") as O:
@@ -43,6 +47,7 @@ parser.add_argument('--samples',type=str,help='File with samples')
 parser.add_argument('--dir',default="results/",type=str,help='Directory containing results')
 parser.add_argument('--db',default="tbdb",type=str,help='Database name')
 parser.add_argument('--suffix',default=".results.json",type=str,help='File suffix')
+parser.add_argument('--dr-only',action="store_true",help="Only extract drug resistance associated variants")
 parser.set_defaults(func=main)
 
 args = parser.parse_args()

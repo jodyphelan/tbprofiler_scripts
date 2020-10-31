@@ -85,9 +85,9 @@ def main_profile(args):
         conf=conf, bam_file=bam_file, prefix=files_prefix, platform=args.platform,
         caller=args.caller, threads=args.threads, no_flagstat=args.no_flagstat,
         run_delly = run_delly, calling_params=args.calling_params,
-        delly_bcf_file=args.delly_bcf_file, run_coverage=run_coverage
+        delly_bcf_file=args.delly_bcf_file, run_coverage=run_coverage, samclip=True
     )
-
+    json.dump(results,open(args.prefix+".tmp_results.json","w"))
     ### Reformat the results to TB-Profiler style ###
     results = tbp.reformat(results, conf, reporting_af=args.reporting_af)
     results["id"] = args.prefix
@@ -161,6 +161,7 @@ if __name__=="__main__":
     parser_sub.add_argument('--delly_bcf_file',help="Precomputed delly bcf file")
     parser_sub.add_argument('--no_coverage',action="store_true",help="Don't collect coverage stats")
     parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
+    parser_sub.add_argument('--dump_tmp_results',action="store_true",help="Dump temp results")
     parser_sub.set_defaults(func=main_profile)
 
 

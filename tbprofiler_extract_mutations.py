@@ -36,19 +36,26 @@ def main(args):
             drugs2rv[drug] = row[3]
     drugs = sorted(list(drugs))
 
-    sys.stdout.write("sample,%s\n" % (",".join(["dr_mutations_%s,other_mutations_%s" % (d,d) for d in drugs])))
+    sys.stdout.write("sample,lineage,sublineage,drtype,%s\n" % (",".join(["dr_mutations_%s,other_mutations_%s" % (d,d) for d in drugs])))
     for s in tqdm(samples):
         data = json.load(open(pp.filecheck("%s/%s%s" % (args.dir,s,args.suffix))))
         mutations = defaultdict(set)
         for var in data["dr_variants"]+data["other_variants"]:
             if var["type"]=="synonymous": continue
-            if "drug" in var:
-                mutations["dr_mutations_"+var["drug"]].add(var["gene"]+"_"+var["change"])
+            if "drugs" in var:
+                for d in var["drugs"]:
+                    mutations["dr_mutations_"+d["drug"]].add(var["gene"]+"_"+var["change"])
             else:
+                if var["locus_tag"] not in rv2drugs: continue
                 tmp_drugs = rv2drugs[var["locus_tag"]]
                 for drug in tmp_drugs:
                     mutations["other_mutations_"+drug].add(var["gene"]+"_"+var["change"])
-        sys.stdout.write("%s,%s\n" % (s,",".join(["%s,%s" % (";".join(mutations["dr_mutations_"+d]),";".join(mutations["other_mutations_"+d])) for d in drugs])))
+
+        for k in ["dr_mutations_%s" % (d) for d in drugs] + ["other_mutations_%s" % (d) for d in drugs]:
+            if len(mutations[k])==0:
+                mutations[k].add("WT")
+
+        sys.stdout.write("%s,%s,%s,%s,%s\n" % (s,data["main_lin"],data["sublin"],data["drtype"],",".join(["%s,%s" % (";".join(mutations["dr_mutations_"+d]),";".join(mutations["other_mutations_"+d])) for d in drugs])))
 
 
 

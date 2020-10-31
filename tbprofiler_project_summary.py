@@ -33,7 +33,8 @@ def main(args):
         data = json.load(open(pp.filecheck("%s/%s%s" % (args.dir,s,args.suffix))))
         for var in data["dr_variants"]:
             mutations[(var["gene"],var["change"])].append(s)
-            mutation2drugs[(var["gene"],var["change"])].add(var["drug"])
+            for d in var["drugs"]:
+                mutation2drugs[(var["gene"],var["change"])].add(d["drug"])
 
 
     results = []
