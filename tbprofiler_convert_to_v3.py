@@ -33,6 +33,8 @@ def main(args):
     else:
         samples = [x.replace(args.suffix,"") for x in os.listdir(args.in_dir) if x[-len(args.suffix):]==args.suffix]
 
+    if not os.path.isdir(args.out_dir):
+        os.mkdir(args.out_dir)
     # Loop through the sample result files
     for s in tqdm(samples):
         # Data has the same structure as the .result.json files

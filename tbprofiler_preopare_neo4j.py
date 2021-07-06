@@ -52,7 +52,7 @@ def main(args):
     if args.meta:
         meta = {}
         for row in csv.DictReader(open(args.meta)):
-            meta[row["id"]] = row
+            meta[row["wgs_id"]] = row
 
 
 
@@ -81,7 +81,7 @@ def main(args):
             "drtype":data["drtype"],
             "lineage":data["sublin"],
             "lineageInfo": json.dumps(data["lineage"]),
-            "qc": json.dumps(data["qc"]),
+            "qc": json.dumps({"pct_reads_mapped":data["qc"]["pct_reads_mapped"],"pct_reads_mapped":data["qc"]["pct_reads_mapped"],"gene_coverage":[]}),
             "pipeline": json.dumps(data["pipeline"]),
             "tbprofilerVersion": json.dumps(data["tbprofiler_version"]),
             "dbVersion": json.dumps(data["db_version"]),
@@ -137,6 +137,11 @@ def main(args):
     variant_drug_edges = uniq_dict_list(tmp_variant_drug_edges)
     variant_nodes = uniq_dict_list(standardise_types(tmp_variant_nodes))
 
+    def batch(iterable, n=1):
+        l = len(iterable)
+        for ndx in range(0, l, n):
+            yield iterable[ndx:min(ndx + n, l)]
+
     with open("sample_nodes.csv","w") as O:
         writer = csv.DictWriter(O,fieldnames = list(sample_nodes[0]))
         writer.writeheader()
@@ -147,10 +152,12 @@ def main(args):
         writer.writeheader()
         writer.writerows(variant_nodes)
 
-    with open("sample_variant_edges.csv","w") as O:
-        writer = csv.DictWriter(O,fieldnames = list(sample_variant_edges[0]))
-        writer.writeheader()
-        writer.writerows(sample_variant_edges)
+    for i,x in enumerate(batch(list(range(len(sample_variant_edges))),10000)):
+        with open("sample_variant_edges.%s.csv" % i,"w") as O:
+            writer = csv.DictWriter(O,fieldnames = list(sample_variant_edges[0]))
+            writer.writeheader()
+            for j in x:
+                writer.writerow(sample_variant_edges[j])
 
     with open("drug_nodes.csv","w") as O:
         writer = csv.DictWriter(O,fieldnames = list(drug_nodes[0]))
@@ -225,10 +232,11 @@ def main(args):
         O.write("CREATE (:Lineage {%s});\n" % ", ".join(["%s: csvLine.%s" % (d,d) for d in lineage_nodes[0]]))
         O.write("\n")
 
-        O.write("LOAD CSV WITH HEADERS FROM 'file:///sample_variant_edges.csv' AS csvLine\n")
-        O.write("MATCH (s:Sample {id: csvLine.sampleId}),(v:Variant {id:csvLine.variantId})\n")
-        O.write("CREATE (s) -[:CONTAINS {%s}]-> (v);\n" % ", ".join(["%s: csvLine.%s" % (d,d) for d in sample_variant_edges[0]]))
-        O.write("\n")
+        for i,x in enumerate(batch(list(range(len(sample_variant_edges))),10000)):
+            O.write("LOAD CSV WITH HEADERS FROM 'file:///sample_variant_edges.%s.csv' AS csvLine\n" % i)
+            O.write("MATCH (s:Sample {id: csvLine.sampleId}),(v:Variant {id:csvLine.variantId})\n")
+            O.write("CREATE (s) -[:CONTAINS {%s}]-> (v);\n" % ", ".join(["%s: csvLine.%s" % (d,d) for d in sample_variant_edges[0]]))
+            O.write("\n")
 
         O.write("LOAD CSV WITH HEADERS FROM 'file:///variant_drug_edges.csv' AS csvLine\n")
         O.write("MATCH (v:Variant {id: csvLine.variantId}),(d:Drug {id:csvLine.drug})\n")

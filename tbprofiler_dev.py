@@ -85,7 +85,9 @@ def main_profile(args):
         conf=conf, bam_file=bam_file, prefix=files_prefix, platform=args.platform,
         caller=args.caller, threads=args.threads, no_flagstat=args.no_flagstat,
         run_delly = run_delly, calling_params=args.calling_params,
-        delly_bcf_file=args.delly_bcf_file, run_coverage=run_coverage, samclip=True
+        coverage_fraction_threshold=args.coverage_fraction_threshold,
+        missing_cov_threshold=args.missing_cov_threshold,
+        delly_bcf_file=args.delly_bcf_file
     )
     json.dump(results,open(args.prefix+".tmp_results.json","w"))
     ### Reformat the results to TB-Profiler style ###
@@ -162,6 +164,8 @@ if __name__=="__main__":
     parser_sub.add_argument('--no_coverage',action="store_true",help="Don't collect coverage stats")
     parser_sub.add_argument('--version', action='version', version="TBProfiler version %s" % tbp._VERSION)
     parser_sub.add_argument('--dump_tmp_results',action="store_true",help="Dump temp results")
+    parser_sub.add_argument('--coverage_fraction_threshold',default=0,type=int,help='Cutoff used to calculate fraction of region covered by <= this value')
+    parser_sub.add_argument('--missing_cov_threshold',default=10,type=int,help='Cutoff used to positions/codons in genes which are missing')
     parser_sub.set_defaults(func=main_profile)
 
 

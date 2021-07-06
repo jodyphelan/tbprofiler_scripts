@@ -34,13 +34,16 @@ def main(args):
         samples = [x.replace(args.suffix,"") for x in os.listdir(args.dir) if x[-len(args.suffix):]==args.suffix]
 
     # Loop through the sample result files
+    results = defaultdict(list)
+    dr_mutations = set()
+    # for
     for s in tqdm(samples):
         # Data has the same structure as the .result.json files
         data = json.load(open(pp.filecheck("%s/%s%s" % (args.dir,s,args.suffix))))
-        for var in data["other_variants"]:
-            # if var["type"]=="frameshift" and var["gene"]=="fbiC":
-            if  var["gene"]=="aptE":
-                print(s,data["drtype"])
+        for var in data["dr_variants"] + data["other_variants"]:
+            if var["gene"]=="fabG1" and var["change"]=="c.663C>A":
+                print(var["freq"])
+
 
 
 # Set up the parser

@@ -35,17 +35,27 @@ def main(args):
 
     # Loop through the sample result files
     variant_freqs = []
+    rprs = []
+    bqrs = []
+    mqrs = []
     for s in tqdm(samples):
         # Data has the same structure as the .result.json files
         data = json.load(open(pp.filecheck("%s/%s%s" % (args.dir,s,args.suffix))))
         for var in data["dr_variants"] + data["other_variants"]:
             if (var["locus_tag"]==args.gene or var["gene"]==args.gene) and var["change"]==args.variant:
                 variant_freqs.append(var["freq"])
+                try:
+                    rprs.append(float(var["variant_annotations"]["ReadPosRankSum"]))
+                    bqrs.append(float(var["variant_annotations"]["BaseQRankSum"]))
+                    mqrs.append(float(var["variant_annotations"]["MQRankSum"]))
+                except:
+                    pass
 
     if len(variant_freqs)>0:
-        print("%s\t%s\t%s\t%s\t%s" % (args.gene,args.variant,len(variant_freqs),statistics.median(variant_freqs),statistics.mean(variant_freqs)))
+        print("%s\t%s\t%s\t%s\t%s\t%s\t%s" % (args.gene,args.variant,len(variant_freqs),statistics.median(variant_freqs),statistics.median(rprs),statistics.median(bqrs),statistics.median(mqrs)))
     else:
-        print("%s\t%s\tNA\tNA\tNA" % (args.gene,args.variant))
+        print("%s\t%s\tNA\tNA\tNA\tNA\tNA" % (args.gene,args.variant))
+
 
 # Set up the parser
 parser = argparse.ArgumentParser(description='tbprofiler script',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
