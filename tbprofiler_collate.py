@@ -93,7 +93,7 @@ def main(args):
 
 # Set up the parser
 parser = argparse.ArgumentParser(description='tbprofiler script',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--outfile',type=str,help='File with samples')
+parser.add_argument('--outfile',type=str,help='Output file')
 parser.add_argument('--samples',type=str,help='File with samples')
 parser.add_argument('--dir',default='results/',type=str,help='Directory containing results')
 parser.add_argument('--db',default='tbdb',type=str,help='Database name')
