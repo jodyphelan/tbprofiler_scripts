@@ -12,20 +12,8 @@ import pathogenprofiler as pp
 import tbprofiler
 
 
-def get_conf_dict(library_prefix):
-    files = {"gff":".gff","ref":".fasta","ann":".ann.txt","barcode":".barcode.bed","bed":".bed","json_db":".dr.json","version":".version.json"}
-    conf = {}
-    for key in files:
-        sys.stderr.write("Using %s file: %s\n" % (key,library_prefix+files[key]))
-        conf[key] = pp.filecheck(library_prefix+files[key])
-    return conf
 
 def main(args):
-    # Get a dictionary with the database file: {"ref": "/path/to/fasta" ... etc. }
-    conf = get_conf_dict(sys.base_prefix + "/share/tbprofiler/%s" % args.db)
-
-    # Get a dictionary mapping the locus_tags to drugs: {"Rv1484": ["isoniazid","ethionamide"], ... etc. }
-    locus_tag2drugs = tbprofiler.get_lt2drugs(conf["bed"])
 
     # If a list of samples is supplied through the args object, store it in a list else get the list from looking in the results direcotry
     if args.samples:
@@ -37,7 +25,6 @@ def main(args):
     for s in tqdm(samples):
         # Data has the same structure as the .result.json files
         data = json.load(open(pp.filecheck("%s/%s%s" % (args.dir,s,args.suffix))))
-
 
 
 # Set up the parser

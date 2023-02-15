@@ -34,11 +34,11 @@ def main(args):
         mutations = []
         for var in (data["dr_variants"] + data["other_variants"]):
             if var["gene"] in gene_set or var["locus_tag"] in gene_set:
-                if not args.synonymous and var["type"]=="synonymous":
+                if not args.synonymous and var["type"]=="synonymous_variant":
                     continue
                 if var["change"] in blacklist:
                     continue
-                mutations.append("%s_%s" % (var["gene"],var["change"]))
+                mutations.append("%s_%s_%.2f" % (var["gene"],var["change"],var["freq"]))
 
         sys.stdout.write("%s,%s\n" % (s,";".join(mutations)))
 

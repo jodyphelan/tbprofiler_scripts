@@ -37,12 +37,14 @@ def main(args):
     results = defaultdict(list)
     dr_mutations = set()
     # for
+    vars = defaultdict(set)
     for s in tqdm(samples):
         # Data has the same structure as the .result.json files
         data = json.load(open(pp.filecheck("%s/%s%s" % (args.dir,s,args.suffix))))
-        for var in data["dr_variants"] + data["other_variants"]:
-            if var["gene"]=="fabG1" and var["change"]=="c.663C>A":
-                print(var["freq"])
+        for var in data["other_variants"]:
+            if var["gene"]=="pncA":
+                print(s,var["change"])
+
 
 
 
